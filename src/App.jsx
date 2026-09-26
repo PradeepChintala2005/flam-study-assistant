@@ -5,44 +5,52 @@ import { useState } from "react";
 function App() {
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleGenerate = async () => {
-  if (!topic.trim()) {
-    alert("Please enter a topic");
-    return;
-  }
-
-  try {
-    const response = await fetch("http://localhost:5000/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        topic: topic,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Backend error:", data);
+    if (!topic.trim()) {
+      setError("Please enter a topic.");
       return;
     }
 
-    const result = parseAndValidateResult(data.result);
+    setLoading(true);
+    setError("");
+    setResult(null);
 
-    if (!result) {
-      console.error("Invalid AI response");
-      return;
+    try {
+      const response = await fetch("http://localhost:5000/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic: topic,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate flashcards");
+      }
+
+      const validatedResult = parseAndValidateResult(data.result);
+
+      if (!validatedResult) {
+        throw new Error("AI returned an invalid response.");
+      }
+
+      console.log("Validated result:", validatedResult);
+      setResult(validatedResult);
+    } catch (error) {
+      console.error("Generation error:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    console.log("Validated result:", result);
-    setResult(result);
-  } catch (error) {
-    console.error("Request failed:", error);
-  }
-};
   return (
     <div className="app">
       <header className="header">
@@ -64,24 +72,39 @@ function App() {
             rows="6"
           />
 
-          <button onClick={handleGenerate}>
-            Generate Flashcards
+          <button onClick={handleGenerate} disabled={loading}>
+            {loading ? "Generating..." : "Generate Flashcards"}
           </button>
         </section>
 
-        <section className="empty-state">
-          <div className="empty-icon">📚</div>
-          <h2>Your flashcards will appear here</h2>
-          <p>
-            Enter a topic above and let AI create your study material.
-          </p>
-        </section>
+        {loading && (
+          <section className="status">
+            <p>Generating your flashcards...</p>
+          </section>
+        )}
+
+        {error && (
+          <section className="error">
+            <p>{error}</p>
+          </section>
+        )}
+
+        {!loading && !error && !result && (
+          <section className="empty-state">
+            <div className="empty-icon">📚</div>
+            <h2>Your flashcards will appear here</h2>
+            <p>
+              Enter a topic above and let AI create your study material.
+            </p>
+          </section>
+        )}
+
         {result && (
-  <FlashcardDeck
-    title={result.title}
-    cards={result.cards}
-  />
-)}
+          <FlashcardDeck
+            title={result.title}
+            cards={result.cards}
+          />
+        )}
       </main>
     </div>
   );
