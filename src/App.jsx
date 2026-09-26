@@ -1,8 +1,10 @@
+import FlashcardDeck from "./components/FlashcardDeck";
 import { parseAndValidateResult } from "./lib/validateResult";
 import { useState } from "react";
 
 function App() {
   const [topic, setTopic] = useState("");
+  const [result, setResult] = useState(null);
 
   const handleGenerate = async () => {
   if (!topic.trim()) {
@@ -36,6 +38,7 @@ function App() {
     }
 
     console.log("Validated result:", result);
+    setResult(result);
   } catch (error) {
     console.error("Request failed:", error);
   }
@@ -73,6 +76,12 @@ function App() {
             Enter a topic above and let AI create your study material.
           </p>
         </section>
+        {result && (
+  <FlashcardDeck
+    title={result.title}
+    cards={result.cards}
+  />
+)}
       </main>
     </div>
   );
