@@ -111,3 +111,108 @@ textarea {
     padding: 20px;
   }
 }
+
+.flashcard-section {
+  margin-top: 30px;
+  padding-bottom: 50px;
+}
+
+.flashcard-section h2 {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.progress {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.flashcard {
+  background: white;
+  padding: 35px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.flashcard h3 {
+  margin: 0 0 25px;
+  font-size: 22px;
+  line-height: 1.5;
+}
+
+.answer {
+  padding: 16px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.flashcard button,
+.navigation button {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.flashcard button:hover,
+.navigation button:hover {
+  background: #4338ca;
+}
+
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.navigation button:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+.status {
+  text-align: center;
+  padding: 30px;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.error {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #b91c1c;
+  text-align: center;
+}
+
+.input-card button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .flashcard {
+    padding: 25px 18px;
+  }
+
+  .flashcard h3 {
+    font-size: 19px;
+  }
+
+  .navigation {
+    gap: 10px;
+  }
+
+  .navigation button {
+    flex: 1;
+  }
+}
