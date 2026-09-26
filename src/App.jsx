@@ -29,7 +29,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await fetch("http://localhost:5000/api/generate", {
+      const response = await fetch("https://flam-study-assistant-wg5k.onrender.com/api/generate", {
         signal: controller.signal,
         method: "POST",
         headers: {
