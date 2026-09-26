@@ -3,15 +3,30 @@ import { useState } from "react";
 function App() {
   const [topic, setTopic] = useState("");
 
-  const handleGenerate = () => {
-    if (!topic.trim()) {
-      alert("Please enter a topic");
-      return;
-    }
+  const handleGenerate = async () => {
+  if (!topic.trim()) {
+    alert("Please enter a topic");
+    return;
+  }
 
-    console.log("Topic:", topic);
-  };
+  try {
+    const response = await fetch("http://localhost:5000/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        topic: topic,
+      }),
+    });
 
+    const data = await response.json();
+
+    console.log("Backend response:", data);
+  } catch (error) {
+    console.error("Request failed:", error);
+  }
+};
   return (
     <div className="app">
       <header className="header">
