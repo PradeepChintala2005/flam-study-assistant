@@ -9,51 +9,60 @@ function App() {
   const [error, setError] = useState("");
   const requestId = useRef(0);
 
-  const handleGenerate = async () => {
-    const currentRequestId = ++requestId.current;
-    if (!topic.trim()) {
-      setError("Please enter a topic.");
+ const handleGenerate = async () => {
+  if (!topic.trim()) {
+    setError("Please enter a topic.");
+    return;
+  }
+
+  const currentRequestId = ++requestId.current;
+
+  setLoading(true);
+  setError("");
+  setResult(null);
+
+  try {
+    const response = await fetch("http://localhost:5000/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        topic: topic,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (currentRequestId !== requestId.current) {
       return;
     }
 
-    setLoading(true);
-    setError("");
-    setResult(null);
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to generate flashcards");
+    }
 
-    try {
-      const response = await fetch("http://localhost:5000/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          topic: topic,
-        }),
-      });
+    const validatedResult = parseAndValidateResult(data.result);
 
-      const data = await response.json();
+    if (!validatedResult) {
+      throw new Error("AI returned an invalid response.");
+    }
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate flashcards");
-      }
-      if (currentRequestId !== requestId.current) {
-        return;
-      }
-      const validatedResult = parseAndValidateResult(data.result);
+    console.log("Validated result:", validatedResult);
+    setResult(validatedResult);
+  } catch (error) {
+    if (currentRequestId !== requestId.current) {
+      return;
+    }
 
-      if (!validatedResult) {
-        throw new Error("AI returned an invalid response.");
-      }
-
-      console.log("Validated result:", validatedResult);
-      setResult(validatedResult);
-    } catch (error) {
-      console.error("Generation error:", error);
-      setError(error.message);
-    } finally {
+    console.error("Generation error:", error);
+    setError(error.message);
+  } finally {
+    if (currentRequestId === requestId.current) {
       setLoading(false);
     }
-  };
+  }
+};
 
   return (
     <div className="app">
