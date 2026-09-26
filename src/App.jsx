@@ -7,62 +7,81 @@ function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const requestId = useRef(0);
 
- const handleGenerate = async () => {
-  if (!topic.trim()) {
-    setError("Please enter a topic.");
-    return;
-  }
-
-  const currentRequestId = ++requestId.current;
-
-  setLoading(true);
-  setError("");
-  setResult(null);
-
-  try {
-    const response = await fetch("http://localhost:5000/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        topic: topic,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (currentRequestId !== requestId.current) {
+  const handleGenerate = async () => {
+    if (!topic.trim()) {
+      setError("Please enter a topic.");
       return;
     }
 
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to generate flashcards");
-    }
+    const currentRequestId = ++requestId.current;
 
-    const validatedResult = parseAndValidateResult(data.result);
+    const controller = new AbortController();
 
-    if (!validatedResult) {
-      throw new Error("AI returned an invalid response.");
-    }
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 30000);
 
-    console.log("Validated result:", validatedResult);
-    setResult(validatedResult);
-  } catch (error) {
-    if (currentRequestId !== requestId.current) {
-      return;
-    }
+    setLoading(true);
+    setError("");
+    setResult(null);
 
-    console.error("Generation error:", error);
-    setError(error.message);
-  } finally {
-    if (currentRequestId === requestId.current) {
-      setLoading(false);
+    try {
+      const response = await fetch("http://localhost:5000/api/generate", {
+        signal: controller.signal,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic: topic,
+        }),
+      });
+
+      const data = await response.json();
+
+      // Ignore response if a newer request has started
+      if (currentRequestId !== requestId.current) {
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to generate flashcards"
+        );
+      }
+
+      const validatedResult = parseAndValidateResult(data.result);
+
+      if (!validatedResult) {
+        throw new Error("AI returned an invalid response.");
+      }
+
+      console.log("Validated result:", validatedResult);
+      setResult(validatedResult);
+    } catch (error) {
+      // Ignore errors from older requests
+      if (currentRequestId !== requestId.current) {
+        return;
+      }
+
+      if (error.name === "AbortError") {
+        setError("The request took too long. Please try again.");
+      } else {
+        console.error("Generation error:", error);
+        setError(error.message);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+
+      // Only the latest request controls loading state
+      if (currentRequestId === requestId.current) {
+        setLoading(false);
+      }
     }
-  }
-};
+  };
 
   return (
     <div className="app">
