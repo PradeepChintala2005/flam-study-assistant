@@ -1,3 +1,4 @@
+import { parseAndValidateResult } from "./lib/validateResult";
 import { useState } from "react";
 
 function App() {
@@ -22,7 +23,19 @@ function App() {
 
     const data = await response.json();
 
-    console.log("Backend response:", data);
+    if (!response.ok) {
+      console.error("Backend error:", data);
+      return;
+    }
+
+    const result = parseAndValidateResult(data.result);
+
+    if (!result) {
+      console.error("Invalid AI response");
+      return;
+    }
+
+    console.log("Validated result:", result);
   } catch (error) {
     console.error("Request failed:", error);
   }

@@ -65,13 +65,15 @@ Do not return any text outside the JSON.
     res.json({
       result: interaction.output_text,
     });
-  } catch (error) {
-    console.error("Gemini error:", error);
+  } 
+   catch (error) {
+  console.error("Gemini error:", error);
 
-    res.status(500).json({
-      error: "Failed to generate flashcards",
-    });
-  }
+  res.status(500).json({
+    error: "Failed to generate flashcards",
+    details: error.message,
+  });
+}
 });
 
 const PORT = process.env.PORT || 5000;
