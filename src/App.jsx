@@ -1,14 +1,16 @@
 import FlashcardDeck from "./components/FlashcardDeck";
 import { parseAndValidateResult } from "./lib/validateResult";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 function App() {
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const requestId = useRef(0);
 
   const handleGenerate = async () => {
+    const currentRequestId = ++requestId.current;
     if (!topic.trim()) {
       setError("Please enter a topic.");
       return;
@@ -34,7 +36,9 @@ function App() {
       if (!response.ok) {
         throw new Error(data.error || "Failed to generate flashcards");
       }
-
+      if (currentRequestId !== requestId.current) {
+        return;
+      }
       const validatedResult = parseAndValidateResult(data.result);
 
       if (!validatedResult) {
