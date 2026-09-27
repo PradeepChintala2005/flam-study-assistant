@@ -13,8 +13,9 @@ function App() {
   const handleGenerate = async () => {
     if (!topic.trim()) {
       setError("Please enter a topic.");
+      setResult(null);
       return;
-    }
+}
 
     const currentRequestId = ++requestId.current;
 
